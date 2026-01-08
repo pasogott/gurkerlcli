@@ -5,9 +5,42 @@ import json
 import click
 
 from ..client import GurkerlClient
+from ..config import Config
 from ..exceptions import GurkerlError
 from ..models import Product
 from ..utils.formatting import format_product_table, print_error, console
+
+
+def _create_search_client(debug: bool = False) -> GurkerlClient:
+    """Create a client for search without PHPSESSION cookie.
+
+    PHPSESSION cookie causes search to return cached results instead of
+    actual search results. See: https://github.com/pasogott/gurkerlcli/issues/1
+    """
+    from ..config import Session
+
+    session = Config.load_session()
+    if not session:
+        from ..exceptions import AuthenticationError
+
+        raise AuthenticationError(
+            "Not authenticated. Please run 'gurkerlcli login' first."
+        )
+
+    # Filter out PHPSESSION cookie
+    filtered_cookies = {
+        k: v for k, v in session.cookies.items() if k != "PHPSESSION"
+    }
+
+    # Create new session with filtered cookies
+    filtered_session = Session(
+        cookies=filtered_cookies,
+        user_email=session.user_email,
+        created_at=session.created_at,
+        expires_at=session.expires_at,
+    )
+
+    return GurkerlClient(session=filtered_session, debug=debug)
 
 
 @click.command(name="search")
@@ -24,7 +57,7 @@ def search(query: str, limit: int, output_json: bool, debug: bool) -> None:
         gurkerlcli search "brot" --json
     """
     try:
-        with GurkerlClient.from_config(debug=debug) as client:
+        with _create_search_client(debug=debug) as client:
             # Search via autocomplete endpoint
             response = client.get(
                 "/services/frontend-service/autocomplete-suggestion",
