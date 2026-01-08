@@ -49,7 +49,7 @@ gurkerlcli lists list
 ### Authentication ✅
 
 ```bash
-# Login
+# Login (credentials stored in macOS Keychain)
 gurkerlcli auth login
 
 # Check status
@@ -58,6 +58,22 @@ gurkerlcli auth whoami
 # Logout
 gurkerlcli auth logout
 ```
+
+#### Alternative: .env file (Linux/CI)
+
+For non-macOS systems or CI/CD, you can use a `.env` file:
+
+```bash
+# Copy example and fill in credentials
+cp .env.example .env
+# Edit .env with your credentials
+
+# Or use environment variables
+export GURKERL_EMAIL=your-email@example.com
+export GURKERL_PASSWORD=your-password
+```
+
+**Note:** `.env` file is less secure than Keychain. Use it only when Keychain is not available.
 
 ### Search Products ✅
 
@@ -117,7 +133,10 @@ gurkerlcli orders show G-123456
 ### Session Storage
 
 - **Session**: `~/.config/gurkerlcli/session.json` (expires after 7 days)
-- **Credentials**: macOS Keychain (secure)
+- **Credentials** (priority order):
+  1. macOS Keychain (most secure, macOS only)
+  2. `.env` file (fallback for Linux/Windows)
+  3. Environment variables `GURKERL_EMAIL`, `GURKERL_PASSWORD` (CI/Docker)
 
 ### Debug Mode
 

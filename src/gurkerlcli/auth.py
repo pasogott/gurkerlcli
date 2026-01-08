@@ -2,15 +2,23 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import httpx
 import keyring
+from dotenv import load_dotenv
 
 from .config import Config, Session
 from .exceptions import AuthenticationError
 
 KEYRING_SERVICE = "gurkerlcli"
+
+# Load .env file if it exists
+dotenv_path = Path.cwd() / ".env"
+if dotenv_path.exists():
+    load_dotenv(dotenv_path)
 
 
 class AuthManager:
@@ -19,8 +27,12 @@ class AuthManager:
     @staticmethod
     def login(email: str, password: str) -> Session:
         """Login to gurkerl.at and create session."""
-        # Store credentials in keyring for future use
-        keyring.set_password(KEYRING_SERVICE, email, password)
+        # Store credentials in keyring for future use (if available)
+        try:
+            keyring.set_password(KEYRING_SERVICE, email, password)
+        except Exception:
+            # Keyring not available - credentials will need to be in .env or env vars
+            pass
 
         # Make login request
         client = httpx.Client(
@@ -79,8 +91,34 @@ class AuthManager:
 
     @staticmethod
     def get_stored_credentials(email: str) -> str | None:
-        """Get stored password from keyring."""
-        return keyring.get_password(KEYRING_SERVICE, email)
+        """Get stored password from keyring, .env, or environment variables.
+
+        Priority:
+        1. Keyring (secure, cross-platform)
+        2. .env file (fallback for Linux/CI)
+        3. Environment variables (for Docker/CI)
+        """
+        # Try keyring first (most secure)
+        try:
+            password = keyring.get_password(KEYRING_SERVICE, email)
+            if password:
+                return password
+        except Exception:
+            # Keyring not available (e.g., on Linux without backend)
+            pass
+
+        # Try .env file
+        env_email = os.getenv("GURKERL_EMAIL")
+        env_password = os.getenv("GURKERL_PASSWORD")
+
+        if env_email == email and env_password:
+            return env_password
+
+        # Try environment variables (for any email)
+        if env_password:
+            return env_password
+
+        return None
 
     @staticmethod
     def is_authenticated() -> bool:

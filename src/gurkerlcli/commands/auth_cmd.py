@@ -1,11 +1,14 @@
 """Authentication commands."""
 
+import os
+from pathlib import Path
+
 import click
 
 from ..auth import AuthManager
 from ..config import Config
 from ..exceptions import AuthenticationError
-from ..utils.formatting import print_error, print_info, print_success
+from ..utils.formatting import print_error, print_info, print_success, console
 
 
 @click.group(name="auth")
@@ -34,6 +37,14 @@ def login(email: str, password: str) -> None:
         print_success(f"Logged in as {email}")
         if session.expires_at:
             print_info(f"Session expires: {session.expires_at.strftime('%Y-%m-%d')}")
+
+        # Check if using .env file and show warning
+        dotenv_path = Path.cwd() / ".env"
+        if dotenv_path.exists() and os.getenv("GURKERL_PASSWORD"):
+            console.print("\n[yellow]⚠️  Using credentials from .env file.[/yellow]")
+            console.print(
+                "[dim]   On macOS, credentials are stored in Keychain for better security.[/dim]"
+            )
 
     except AuthenticationError as e:
         print_error(str(e))
