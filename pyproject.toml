@@ -1,6 +1,6 @@
 [project]
 name = "gurkerlcli"
-version = "0.1.3"
+version = "0.1.4"
 description = "CLI for gurkerl.at online grocery shopping (Austria)"
 readme = "README.md"
 authors = [
