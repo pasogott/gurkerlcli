@@ -8,6 +8,36 @@ from decimal import Decimal
 from pydantic import BaseModel, Field
 
 
+class SearchResult(BaseModel):
+    """Product search result (from /api/v1/products + /api/v1/products/prices)."""
+
+    id: int
+    name: str
+    slug: str
+    brand: str | None = None
+    unit: str
+    textual_amount: str = Field(alias="textualAmount")
+    images: list[str] = Field(default_factory=list)
+    price: Decimal | None = None
+    price_per_unit: Decimal | None = None
+    currency: str = "EUR"
+
+    class Config:
+        populate_by_name = True
+
+    @property
+    def image_url(self) -> str:
+        """Get first image URL."""
+        return self.images[0] if self.images else ""
+
+    @property
+    def price_display(self) -> str:
+        """Get formatted price."""
+        if self.price is not None:
+            return f"€ {self.price:.2f}"
+        return "N/A"
+
+
 class ProductImage(BaseModel):
     """Product image."""
 
