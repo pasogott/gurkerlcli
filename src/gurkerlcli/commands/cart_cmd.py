@@ -103,15 +103,17 @@ def add_to_cart(product_id: str, quantity: int, debug: bool) -> None:
                     f"✓ Updated {product_name} ({existing_item.quantity} → {new_quantity})"
                 )
             else:
-                # Add new item (we need orderFieldId, so we add via product search first)
-                # For now, we'll use a workaround: PUT with productId directly
-                response = client.put(
-                    f"/services/frontend-service/v2/cart-review/item/{product_id}",
-                    json={"quantity": quantity},
+                # Add new item via cart/item endpoint
+                client.post(
+                    "/api/v1/cart/item",
+                    json={"amount": quantity, "productId": int(product_id)},
                 )
 
-                # Parse response to get product name
-                updated_cart = CartResponseDTO(**response)
+                # Re-fetch cart to get product name
+                updated_response = client.get(
+                    "/services/frontend-service/v2/cart-review/check-cart"
+                )
+                updated_cart = CartResponseDTO(**updated_response)
                 item = updated_cart.data.items.get(product_id)
                 product_name = item.productName if item else f"Product {product_id}"
                 print_success(f"✓ Added {product_name} ({quantity}x) to cart")
