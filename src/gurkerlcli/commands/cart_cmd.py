@@ -94,7 +94,7 @@ def add_to_cart(product_id: str, quantity: int, debug: bool) -> None:
             if existing_item:
                 # Update existing item
                 new_quantity = existing_item.quantity + quantity
-                response = client.put(
+                response = client.post(
                     f"/services/frontend-service/v2/cart-review/item/{existing_item.orderFieldId}",
                     json={"quantity": new_quantity},
                 )
@@ -152,7 +152,7 @@ def remove_from_cart(product_id: str, debug: bool) -> None:
                 raise click.Abort()
 
             # Remove by setting quantity to 0
-            client.put(
+            client.post(
                 f"/services/frontend-service/v2/cart-review/item/{item.orderFieldId}",
                 json={"quantity": 0},
             )
@@ -193,7 +193,7 @@ def clear_cart(force: bool, debug: bool) -> None:
 
             # Remove all items by setting quantity to 0
             for item in cart_data.data.items.values():
-                client.put(
+                client.post(
                     f"/services/frontend-service/v2/cart-review/item/{item.orderFieldId}",
                     json={"quantity": 0},
                 )
