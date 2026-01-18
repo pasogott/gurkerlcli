@@ -55,7 +55,6 @@ Thumbs.db
 
 # Test files with potentially sensitive data
 test_*.sh
-test_*.py
 
 # Environment variables
 .env
