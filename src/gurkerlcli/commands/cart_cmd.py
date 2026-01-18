@@ -94,7 +94,7 @@ def add_to_cart(product_id: str, quantity: int, debug: bool) -> None:
             if existing_item:
                 # Update existing item
                 new_quantity = existing_item.quantity + quantity
-                response = client.post(
+                client.post(
                     f"/services/frontend-service/v2/cart-review/item/{existing_item.orderFieldId}",
                     json={"quantity": new_quantity},
                 )

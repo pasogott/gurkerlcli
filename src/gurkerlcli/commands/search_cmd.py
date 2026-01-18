@@ -30,9 +30,7 @@ def _create_search_client(debug: bool = False) -> GurkerlClient:
         )
 
     # Filter out PHPSESSION cookie
-    filtered_cookies = {
-        k: v for k, v in session.cookies.items() if k != "PHPSESSION"
-    }
+    filtered_cookies = {k: v for k, v in session.cookies.items() if k != "PHPSESSION"}
 
     # Create new session with filtered cookies
     filtered_session = Session(
@@ -56,7 +54,11 @@ def _format_search_table(results: list[SearchResult]) -> Table:
     table.add_column("Per Unit", justify="right", style="dim")
 
     for result in results:
-        per_unit = f"€ {result.price_per_unit:.2f}/{result.unit}" if result.price_per_unit else ""
+        per_unit = (
+            f"€ {result.price_per_unit:.2f}/{result.unit}"
+            if result.price_per_unit
+            else ""
+        )
         table.add_row(
             str(result.id),
             result.name,
@@ -154,7 +156,9 @@ def search(query: str, limit: int, output_json: bool, debug: bool) -> None:
                         price = Decimal(str(price_data["price"]["amount"]))
                         currency = price_data["price"].get("currency", "EUR")
                     if "pricePerUnit" in price_data:
-                        price_per_unit = Decimal(str(price_data["pricePerUnit"]["amount"]))
+                        price_per_unit = Decimal(
+                            str(price_data["pricePerUnit"]["amount"])
+                        )
 
                     result = SearchResult(
                         id=pid,
@@ -173,6 +177,7 @@ def search(query: str, limit: int, output_json: bool, debug: bool) -> None:
                     if debug:
                         print_error(f"Failed to parse product: {e}")
                         import traceback
+
                         traceback.print_exc()
                     continue
 
