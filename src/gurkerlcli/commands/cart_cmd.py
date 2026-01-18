@@ -151,10 +151,9 @@ def remove_from_cart(product_id: str, debug: bool) -> None:
                 print_error(f"Product {product_id} not in cart")
                 raise click.Abort()
 
-            # Remove by setting quantity to 0
-            client.post(
+            # Remove item via DELETE
+            client.delete(
                 f"/services/frontend-service/v2/cart-review/item/{item.orderFieldId}",
-                json={"quantity": 0},
             )
             print_success(f"✓ Removed {item.productName} from cart")
 
@@ -191,11 +190,10 @@ def clear_cart(force: bool, debug: bool) -> None:
             )
             cart_data = CartResponseDTO(**cart_response)
 
-            # Remove all items by setting quantity to 0
+            # Remove all items via DELETE
             for item in cart_data.data.items.values():
-                client.post(
+                client.delete(
                     f"/services/frontend-service/v2/cart-review/item/{item.orderFieldId}",
-                    json={"quantity": 0},
                 )
 
             print_success(f"✓ Cleared {len(cart_data.data.items)} items from cart")
